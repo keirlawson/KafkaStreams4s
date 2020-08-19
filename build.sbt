@@ -39,6 +39,7 @@ val KafkaConnectHttp4sVersion = "0.5.0"
 val MunitVersion = "0.7.19"
 val ShapelessVersion = "2.3.3"
 val VulcanVersion = "1.2.0"
+val ConfluentVersion = "5.4.0"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -58,7 +59,8 @@ lazy val commonSettings = Seq(
   crossScalaVersions := supportedScalaVersions,
   addCompilerPlugin(("org.typelevel" %% "kind-projector" % "0.11.1").cross(CrossVersion.full)),
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
-  scalafmtOnCompile := true
+  scalafmtOnCompile := true,
+  resolvers += "confluent" at "https://packages.confluent.io/maven/"
 )
 
 lazy val noPublishSettings = Seq(
@@ -165,14 +167,28 @@ lazy val vulcan = (project in file("vulcan"))
     name := "kafka-streams4s-vulcan",
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-streams" % KafkaVersion,
+      "io.confluent" % "kafka-avro-serializer" % ConfluentVersion,
       "com.github.fd4s" %% "vulcan" % VulcanVersion
     )
   )
   .dependsOn(core)
 
+lazy val vulcanSchema = (project in file("vulcan-schema"))
+  .settings(commonSettings)
+  .settings(
+    name := "kafka-streams4s-vulcan-schema",
+    libraryDependencies ++= Seq(
+      "org.apache.kafka" % "kafka-streams" % KafkaVersion,
+      "io.confluent" % "kafka-avro-serializer" % ConfluentVersion,
+      "com.github.fd4s" %% "vulcan" % VulcanVersion
+    )
+  )
+  .dependsOn(core)
+
+
 lazy val kafkaStreams4s = (project in file("."))
   .settings(commonSettings)
   .settings(noPublishSettings)
   .settings(name := "kafka-streams4s")
-  .dependsOn(core, circe, debezium, avro4s, shapeless, vulcan, testing, tests, docs)
-  .aggregate(core, circe, debezium, avro4s, shapeless, vulcan, testing, tests, docs)
+  .dependsOn(core, circe, debezium, avro4s, shapeless, vulcan, vulcanSchema, testing, tests, docs)
+  .aggregate(core, circe, debezium, avro4s, shapeless, vulcan, vulcanSchema, testing, tests, docs)

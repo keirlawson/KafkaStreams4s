@@ -5,8 +5,8 @@
 .bloop/
 .idea/
 .metals/
-.vscode
-metals.sbt
+project/metals.sbt
+.vscode/
 .bsp/
 
 .DS_Store
